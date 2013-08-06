@@ -19,15 +19,27 @@ if not exist "T:\" (schtasks /run /tn "Personal\VD\Mount BigCache")
 REM Watch out for the BigCache coming online, and end if it doesn't.
 set /a LOOKS=0
 :Look_Again
-if %LOOKS%==3 (goto :End)
+if %LOOKS%==250 (set /a WAITED=0) && (goto :Wait_Longer)
 if not exist "T:\" (
 	set /a LOOKS=LOOKS+1
-	timeout /t 5 /nobreak
+	echo Looking again . . .
 	goto :Look_Again
 )
 
+:Wait_Longer
+if WAITED==3 (goto :End)
+if not exist "T:\" (
+	echo Waiting longer . . .
+	timeout /t 5 /nobreak
+	set /a WAITED=WAITED+1
+	goto :Wait_Longer
+)
+
+set LOOKS=
+set WAITED=
+
 REM Wait for user to finish coding.
-else.
+echo.
 echo Do not close this window. It will automatically close itself %X% seconds after
 echo you have closed Notepad++, giving RoboCopy a minimum of 10 seconds to back up
 echo anything you may have saved upon exit.
@@ -35,7 +47,7 @@ echo.
 
 REM Launch RoboCopy if it's not already running.
 find /i "robocopy.exe" "%TEMP%\procz_alive.tmp" >nul
-if ERRORLEVEL 1 (call "%CD%\CMDs\Code to BigCache.cmd")
+if ERRORLEVEL 1 (schtasks /run /tn "Personal\RoboCopy\Code to BC")
 if exist "%TEMP%\procz_alive.tmp" (del "%TEMP%\procz_alive.tmp")
 
 REM Launch Notepad++.
@@ -43,7 +55,8 @@ call "%CD%\CMDs\Notepad++.cmd"
 
 REM Kill RoboCopy after %X% seconds.
 timeout /t %X% /nobreak
-taskkill /f /im robocopy.exe /t
+schtasks /run /tn "Personal\RoboCopy\Kill RoboCopy"
+set X=
 
 REM Dismount the BigCache if it's mounted.
 if exist "T:\" (schtasks /run /tn "Personal\VD\Dismount BigCache")
