@@ -24,9 +24,11 @@ REM Open the Coding foler.
 
 REM Scheduled task's names.
 set MBC=Personal\VD\Mount BigCache
+set DBC=Personal\VD\Dismount BigCache
+
+REM These two must be 'Run with highest privileges' if you want to use the /SL switch.
 set CBC=Personal\RoboCopy\Code to BC
 set KRC=Personal\RoboCopy\Kill RoboCopy
-set DBC=Personal\VD\Dismount BigCache
 
 REM Mount the BigCache (TrueCrypt file-hosted volume) if it's not already mounted.
 if not exist "%DRIVE_LETTER%" (schtasks /run /tn "%MBC%")
@@ -34,7 +36,7 @@ if not exist "%DRIVE_LETTER%" (schtasks /run /tn "%MBC%")
 REM Watch out for the BigCache coming online, and end if it doesn't.
 set /a LOOKS=1
 :Look_Again
-if %LOOKS%==250 (set /a WAITED=0) && (goto :Wait_Longer)
+if %LOOKS%==300 (set /a WAITED=0) && (goto :Wait_Longer)
 if not exist "%DRIVE_LETTER%" (
 	set /a LOOKS=LOOKS+1
 	goto :Look_Again
